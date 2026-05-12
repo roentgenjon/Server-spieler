@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft Server Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <svg class="logo-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" fill="#7a5c1e"/>
+        <rect width="32" height="10" fill="#5a8f2c"/>
+        <rect y="10" width="32" height="3" fill="#6baa34"/>
+        <rect x="2" y="13" width="2" height="2" fill="#6b4e10"/><rect x="10" y="15" width="3" height="2" fill="#5a4210"/>
+        <rect x="20" y="13" width="2" height="3" fill="#6b4e10"/><rect x="26" y="16" width="3" height="2" fill="#5a4210"/>
+        <rect x="6" y="20" width="2" height="2" fill="#6b4e10"/><rect x="16" y="18" width="3" height="2" fill="#5a4210"/>
+        <rect x="2" y="1" width="2" height="4" fill="#3d7a14"/><rect x="8" y="0" width="2" height="5" fill="#3d7a14"/>
+        <rect x="15" y="1" width="2" height="4" fill="#3d7a14"/><rect x="22" y="0" width="3" height="5" fill="#3d7a14"/>
+        <rect x="28" y="2" width="2" height="3" fill="#3d7a14"/>
+      </svg>
+      <div>
+        <div class="logo-title">Server</div>
+        <div class="logo-sub">Dashboard</div>
+      </div>
+    </div>
+
+    <div class="server-info-box">
+      <div class="server-status-row">
+        <span class="status-dot" id="status-dot"></span>
+        <span class="status-text" id="status-text">Verbinde…</span>
+      </div>
+      <div class="server-name" id="server-name-display">Mein Server</div>
+      <div class="player-count-display">
+        <span id="online-count">0</span> / <span id="max-count">20</span>
+        <span class="player-count-label">Spieler online</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-view="players">
+        <span class="nav-icon">&#128101;</span>Spieler
+      </a>
+      <a href="#" class="nav-item" data-view="settings">
+        <span class="nav-icon">&#9881;&#65039;</span>Einstellungen
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button class="btn-refresh" id="refresh-btn">
+        <span id="refresh-icon" class="refresh-icon">&#8635;</span>
+        Aktualisieren
+      </button>
+      <div class="auto-refresh-label" id="auto-refresh-label"></div>
+    </div>
+  </nav>
+
+  <!-- ═══ MAIN CONTENT ═══ -->
+  <main class="main-content">
+
+    <!-- Players View -->
+    <div id="view-players" class="view active">
+      <div class="view-header">
+        <div>
+          <h1>Online Spieler</h1>
+          <p class="view-subtitle" id="last-updated-text">—</p>
+        </div>
+        <div class="view-header-actions">
+          <div class="search-box">
+            <span class="search-icon">&#128269;</span>
+            <input type="search" id="search-input" class="search-input" placeholder="Spieler suchen…">
+          </div>
+        </div>
+      </div>
+
+      <div id="state-loading" class="state-box">
+        <div class="spinner"></div>
+        <p>Lade Spielerdaten…</p>
+      </div>
+
+      <div id="state-error" class="state-box hidden">
+        <div class="state-icon">&#9888;&#65039;</div>
+        <h3>Verbindung fehlgeschlagen</h3>
+        <p id="error-msg">Konnte keine Verbindung zum Server herstellen.</p>
+        <button class="btn-primary" id="retry-btn">Erneut versuchen</button>
+      </div>
+
+      <div id="state-empty" class="state-box hidden">
+        <div class="state-icon">&#127918;</div>
+        <h3>Keine Spieler online</h3>
+        <p>Momentan ist niemand auf dem Server.</p>
+      </div>
+
+      <div id="player-grid" class="player-grid hidden"></div>
+    </div>
+
+    <!-- Settings View -->
+    <div id="view-settings" class="view hidden">
+      <div class="view-header">
+        <div>
+          <h1>Einstellungen</h1>
+          <p class="view-subtitle">API &amp; Dashboard konfigurieren</p>
+        </div>
+      </div>
+
+      <div class="settings-grid">
+        <div class="settings-card">
+          <div class="settings-card-title">&#128279; API Verbindung</div>
+          <div class="form-group">
+            <label class="form-label">Demo-Modus</label>
+            <div class="toggle-row">
+              <span class="form-hint">Beispieldaten ohne echten Server verwenden</span>
+              <label class="toggle">
+                <input type="checkbox" id="demo-mode">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div id="api-settings-group">
+            <div class="form-group">
+              <label class="form-label" for="api-url">API URL</label>
+              <input type="url" id="api-url" class="form-input" placeholder="http://deine-server-ip:8080/api">
+              <span class="form-hint">Endpunkt deines Minecraft-Server-Backends</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="api-token">API Token (optional)</label>
+              <input type="password" id="api-token" class="form-input" placeholder="••••••••">
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card-title">&#128187; Server Infos</div>
+          <div class="form-group">
+            <label class="form-label" for="cfg-server-name">Server Name</label>
+            <input type="text" id="cfg-server-name" class="form-input" placeholder="Mein Minecraft Server">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="cfg-max-players">Max. Spieler</label>
+            <input type="number" id="cfg-max-players" class="form-input" min="1" max="1000" value="20">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="cfg-refresh">Auto-Refresh (Sekunden)</label>
+            <input type="number" id="cfg-refresh" class="form-input" min="5" max="300" value="30">
+          </div>
+        </div>
+
+        <div class="settings-card settings-card--full">
+          <div class="settings-card-title">&#128225; API Dokumentation</div>
+          <p class="form-hint" style="margin-bottom:12px;">Das Dashboard benötigt eine HTTP-API, die Minecraft-Befehle via RCON ausführt. Mögliche Backends:</p>
+          <div class="api-options">
+            <div class="api-option">
+              <div class="api-option-title">&#127381; Nebuliton API</div>
+              <p>Falls Nebuliton.io eine REST-API bereitstellt, einfach deren URL oben eintragen.</p>
+            </div>
+            <div class="api-option">
+              <div class="api-option-title">&#128268; RCON-Web-Admin</div>
+              <p>Nutze <strong>rcon-web-admin</strong> als leichtgewichtigen HTTP-RCON-Wrapper.</p>
+            </div>
+            <div class="api-option">
+              <div class="api-option-title">&#129529; Paper Plugin</div>
+              <p>Installiere ein Plugin wie <strong>WebConsole</strong> oder <strong>Dynmap</strong> mit API.</p>
+            </div>
+          </div>
+          <div class="api-endpoints">
+            <div class="api-endpoints-title">Erwartete Endpunkte:</div>
+            <div class="endpoint"><code>GET /players</code> &rarr; Liste der Online-Spieler (JSON)</div>
+            <div class="endpoint"><code>POST /execute</code> &rarr; Body: <code>&#123;"command":"…"&#125;</code> &rarr; Führt RCON-Befehl aus</div>
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn-primary" id="save-settings-btn">&#128190; Speichern</button>
+          <button class="btn-secondary" id="reset-settings-btn">Zurücksetzen</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══ PLAYER MODAL ═══ -->
+<div class="modal-backdrop hidden" id="modal-backdrop"></div>
+<div class="player-modal hidden" id="player-modal">
+  <div class="modal-scroll">
+    <div class="modal-header">
+      <div class="modal-player-hero">
+        <div class="modal-avatar-wrap">
+          <img id="modal-avatar" src="" alt="" class="modal-avatar">
+          <span class="modal-online-dot"></span>
+        </div>
+        <div class="modal-player-title">
+          <h2 id="modal-player-name">—</h2>
+          <div class="modal-player-meta">
+            <span id="modal-gamemode-badge" class="gamemode-badge">Survival</span>
+            <span id="modal-world-badge" class="world-badge">world</span>
+          </div>
+          <code class="modal-uuid" id="modal-uuid">—</code>
+        </div>
+      </div>
+      <button class="modal-close-btn" id="modal-close">&#10005;</button>
+    </div>
+
+    <div class="modal-stats-bar">
+      <div class="modal-stat-item">
+        <div class="stat-label">&#10084;&#65039; Herzen</div>
+        <div class="stat-val" id="stat-health">20/20</div>
+        <div class="health-bar-mini">
+          <div class="health-bar-fill" id="health-bar-fill"></div>
+        </div>
+      </div>
+      <div class="modal-stat-item">
+        <div class="stat-label">&#11088; Level</div>
+        <div class="stat-val" id="stat-level">0</div>
+      </div>
+      <div class="modal-stat-item">
+        <div class="stat-label">&#127919; XP (bis n. Level)</div>
+        <div class="stat-val" id="stat-xp">0</div>
+      </div>
+      <div class="modal-stat-item">
+        <div class="stat-label">&#128205; Position</div>
+        <div class="stat-val mono" id="stat-pos">0, 64, 0</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="health">&#10084;&#65039; Herzen</button>
+      <button class="modal-tab" data-tab="items">&#128230; Items</button>
+      <button class="modal-tab" data-tab="enchants">&#10024; Enchants</button>
+      <button class="modal-tab" data-tab="effects">&#129514; Effekte</button>
+      <button class="modal-tab" data-tab="xp">&#11088; XP</button>
+    </div>
+
+    <div class="modal-tab-body">
+
+      <!-- ── TAB: Herzen ── -->
+      <div id="tab-health" class="tab-pane active">
+        <div class="tab-section">
+          <div class="tab-section-title">Aktuelle Herzen setzen</div>
+          <div class="hearts-display" id="hearts-display"></div>
+          <div class="input-action-row">
+            <div class="stepper-group">
+              <button class="stepper-btn" data-target="health-val" data-step="-1">&#8722;</button>
+              <input type="number" id="health-val" class="stepper-input" min="0.5" max="1024" step="0.5" value="10">
+              <button class="stepper-btn" data-target="health-val" data-step="1">&#43;</button>
+            </div>
+            <span class="input-unit">Herzen</span>
+          </div>
+          <div class="btn-row">
+            <button class="btn-success" id="btn-set-health">&#10084;&#65039; Herzen setzen</button>
+            <button class="btn-success" id="btn-heal-full">&#127353; Voll heilen</button>
+            <button class="btn-danger" id="btn-kill">&#128128; Töten</button>
+          </div>
+        </div>
+        <div class="tab-section">
+          <div class="tab-section-title">Max. Herzen anpassen</div>
+          <p class="form-hint">Ändert die maximale Lebenspunktzahl des Spielers.</p>
+          <div class="input-action-row">
+            <div class="stepper-group">
+              <button class="stepper-btn" data-target="max-health-val" data-step="-1">&#8722;</button>
+              <input type="number" id="max-health-val" class="stepper-input" min="1" max="512" step="1" value="10">
+              <button class="stepper-btn" data-target="max-health-val" data-step="1">&#43;</button>
+            </div>
+            <span class="input-unit">Max-Herzen</span>
+          </div>
+          <div class="btn-row">
+            <button class="btn-primary" id="btn-set-max-health">Max. Herzen setzen</button>
+            <button class="btn-secondary" id="btn-reset-max-health">Zurücksetzen (10)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: Items ── -->
+      <div id="tab-items" class="tab-pane hidden">
+        <div class="tab-section">
+          <div class="tab-section-title">Item geben</div>
+          <div class="item-search-wrap">
+            <div class="form-group">
+              <label class="form-label">Item</label>
+              <div class="autocomplete-wrap">
+                <input type="search" id="item-search" class="form-input" placeholder="z.B. diamond_sword…" autocomplete="off">
+                <div id="item-dropdown" class="autocomplete-dropdown hidden"></div>
+              </div>
+            </div>
+            <div class="form-group" style="max-width:110px">
+              <label class="form-label">Anzahl</label>
+              <input type="number" id="item-amount" class="form-input" min="1" max="2304" value="1">
+            </div>
+          </div>
+          <div class="selected-item-chip" id="selected-item-chip" style="display:none">
+            <span id="selected-item-icon">&#128230;</span>
+            <span id="selected-item-label">—</span>
+            <button class="chip-clear" id="clear-item-selection">&#10005;</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn-success" id="btn-give-item">&#128230; Item geben</button>
+            <button class="btn-danger" id="btn-clear-item">&#128465;&#65039; Item entfernen</button>
+            <button class="btn-danger" id="btn-clear-all">&#128465;&#65039; Inventar leeren</button>
+          </div>
+        </div>
+        <div class="tab-section">
+          <div class="tab-section-title">Schnellauswahl</div>
+          <div class="quick-grid" id="quick-items-grid"></div>
+        </div>
+      </div>
+
+      <!-- ── TAB: Enchants ── -->
+      <div id="tab-enchants" class="tab-pane hidden">
+        <div class="tab-section">
+          <div class="tab-section-title">Gehaltenes Item verzaubern</div>
+          <p class="form-hint">Verzaubert das Item, das der Spieler gerade in der Hand hält.</p>
+          <div class="two-col-form">
+            <div class="form-group">
+              <label class="form-label">Verzauberung</label>
+              <select id="enchant-select" class="form-input form-select">
+                <option value="">— Verzauberung wählen —</option>
+              </select>
+            </div>
+            <div class="form-group" style="max-width:110px">
+              <label class="form-label">Level</label>
+              <input type="number" id="enchant-level" class="form-input" min="1" max="255" value="1">
+            </div>
+          </div>
+          <div class="enchant-info-box" id="enchant-info-box" style="display:none"></div>
+          <div class="btn-row">
+            <button class="btn-success" id="btn-enchant">&#10024; Verzaubern</button>
+            <button class="btn-danger" id="btn-unenchant">&#128683; Alle entfernen</button>
+          </div>
+        </div>
+        <div class="tab-section">
+          <div class="tab-section-title">Quick-Enchants</div>
+          <div class="quick-grid" id="quick-enchants-grid"></div>
+        </div>
+      </div>
+
+      <!-- ── TAB: Effekte ── -->
+      <div id="tab-effects" class="tab-pane hidden">
+        <div class="tab-section">
+          <div class="tab-section-title">Effekt geben</div>
+          <div class="two-col-form">
+            <div class="form-group">
+              <label class="form-label">Effekt</label>
+              <select id="effect-select" class="form-input form-select">
+                <option value="">— Effekt wählen —</option>
+              </select>
+            </div>
+            <div class="form-group" style="max-width:90px">
+              <label class="form-label">Stärke</label>
+              <input type="number" id="effect-amplifier" class="form-input" min="0" max="255" value="0">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Dauer (Sekunden)</label>
+            <input type="number" id="effect-duration" class="form-input" min="1" max="1000000" value="60" style="max-width:200px">
+          </div>
+          <div class="btn-row">
+            <button class="btn-success" id="btn-give-effect">&#129514; Effekt geben</button>
+            <button class="btn-danger" id="btn-clear-effects">&#128683; Alle Effekte entfernen</button>
+          </div>
+        </div>
+        <div class="tab-section">
+          <div class="tab-section-title">Quick-Effekte</div>
+          <div class="quick-grid" id="quick-effects-grid"></div>
+        </div>
+      </div>
+
+      <!-- ── TAB: XP ── -->
+      <div id="tab-xp" class="tab-pane hidden">
+        <div class="tab-section">
+          <div class="tab-section-title">Erfahrung verwalten</div>
+          <div class="xp-visual" id="xp-visual">
+            <div class="xp-level-badge" id="xp-level-badge">0</div>
+            <div class="xp-bar-wrap">
+              <div class="xp-bar">
+                <div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div>
+              </div>
+              <span class="xp-bar-label" id="xp-bar-label">0 XP</span>
+            </div>
+          </div>
+          <div class="input-action-row">
+            <div class="stepper-group">
+              <button class="stepper-btn" data-target="xp-val" data-step="-10">&#8722;</button>
+              <input type="number" id="xp-val" class="stepper-input" min="0" max="100000" value="100">
+              <button class="stepper-btn" data-target="xp-val" data-step="10">&#43;</button>
+            </div>
+            <select id="xp-type" class="form-input form-select" style="max-width:160px">
+              <option value="points">XP-Punkte</option>
+              <option value="levels">Level</option>
+            </select>
+          </div>
+          <div class="btn-row">
+            <button class="btn-success" id="btn-add-xp">&#11088; XP hinzufügen</button>
+            <button class="btn-danger" id="btn-remove-xp">&#10134; XP entfernen</button>
+            <button class="btn-secondary" id="btn-reset-xp">&#128260; XP zurücksetzen</button>
+          </div>
+        </div>
+        <div class="tab-section">
+          <div class="tab-section-title">Schnell-XP</div>
+          <div class="quick-grid">
+            <button class="quick-btn" data-action="xp-quick" data-val="100" data-type="points">+100 XP</button>
+            <button class="quick-btn" data-action="xp-quick" data-val="1000" data-type="points">+1.000 XP</button>
+            <button class="quick-btn" data-action="xp-quick" data-val="5" data-type="levels">+5 Level</button>
+            <button class="quick-btn" data-action="xp-quick" data-val="10" data-type="levels">+10 Level</button>
+            <button class="quick-btn quick-btn--danger" data-action="xp-quick-remove" data-val="5" data-type="levels">&#8722;5 Level</button>
+            <button class="quick-btn quick-btn--danger" data-action="xp-quick-remove" data-val="10" data-type="levels">&#8722;10 Level</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end tab-body -->
+  </div><!-- end modal-scroll -->
+</div><!-- end player-modal -->
+
+<!-- ═══ TOAST CONTAINER ═══ -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
