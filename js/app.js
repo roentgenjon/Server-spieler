@@ -95,8 +95,13 @@ function bindNav() {
       e.preventDefault();
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       item.classList.add('active');
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      $(`view-${item.dataset.view}`).classList.add('active');
+      document.querySelectorAll('.view').forEach(v => {
+        v.classList.remove('active', 'hidden');
+        v.style.display = 'none';
+      });
+      const target = $(`view-${item.dataset.view}`);
+      target.classList.add('active');
+      target.style.display = '';
     });
   });
 }

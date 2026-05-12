@@ -163,7 +163,8 @@ code { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
   overflow-y: auto;
   padding: 24px 28px;
 }
-.view.active { display: flex; }
+/* active überschreibt hidden – inline-style als Fallback im JS */
+.view.active { display: flex !important; }
 
 .view-header {
   display: flex;
