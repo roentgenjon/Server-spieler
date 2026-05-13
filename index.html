@@ -102,7 +102,7 @@
     </div>
 
     <!-- Settings View -->
-    <div id="view-settings" class="view hidden">
+    <div id="view-settings" class="view">
       <div class="view-header">
         <div>
           <h1>Einstellungen</h1>
@@ -111,68 +111,100 @@
       </div>
 
       <div class="settings-grid">
+        <!-- Karte 1: Verbindung -->
         <div class="settings-card">
-          <div class="settings-card-title">&#128279; API Verbindung</div>
+          <div class="settings-card-title">&#128279; Verbindung</div>
+
           <div class="form-group">
-            <label class="form-label">Demo-Modus</label>
-            <div class="toggle-row">
-              <span class="form-hint">Beispieldaten ohne echten Server verwenden</span>
-              <label class="toggle">
-                <input type="checkbox" id="demo-mode">
-                <span class="toggle-slider"></span>
-              </label>
+              <label class="form-label" for="cfg-server-address">&#127381; Nebuliton Server-Adresse</label>
+              <input type="text" id="cfg-server-address" class="form-input"
+                     placeholder="z.B. abc123.nebuliton.io oder abc123.nebuliton.io:25565">
+              <span class="form-hint">
+                Deine Server-Adresse von nebuliton.io &ndash; wird f&uuml;r die
+                Spielerliste &amp; Mojang-Skins verwendet.
+                Keine Plugins n&ouml;tig!
+              </span>
             </div>
-          </div>
-          <div id="api-settings-group">
+
+            <div class="connection-modes-box">
+              <div class="conn-mode">
+                <span class="conn-mode-icon">&#127381;</span>
+                <div>
+                  <div class="conn-mode-title">Nur Server-Adresse</div>
+                  <div class="conn-mode-desc">Echte Spielerliste &amp; Mojang-Skins. Verwaltungsbefehle deaktiviert.</div>
+                </div>
+              </div>
+              <div class="conn-mode">
+                <span class="conn-mode-icon">&#128268;</span>
+                <div>
+                  <div class="conn-mode-title">+ RCON-API URL</div>
+                  <div class="conn-mode-desc">Volle Verwaltung: Herzen, Items, Enchants, Effekte, XP.</div>
+                </div>
+              </div>
+            </div>
+
             <div class="form-group">
-              <label class="form-label" for="api-url">API URL</label>
-              <input type="url" id="api-url" class="form-input" placeholder="http://deine-server-ip:8080/api">
-              <span class="form-hint">Endpunkt deines Minecraft-Server-Backends</span>
+              <label class="form-label" for="api-url">RCON-Proxy URL <span class="form-optional">(optional)</span></label>
+              <input type="url" id="api-url" class="form-input" placeholder="http://deine-ip:8080/api">
+              <span class="form-hint">HTTP-Endpunkt, der RCON-Befehle weiterleitet</span>
             </div>
             <div class="form-group">
-              <label class="form-label" for="api-token">API Token (optional)</label>
+              <label class="form-label" for="api-token">API Token <span class="form-optional">(optional)</span></label>
               <input type="password" id="api-token" class="form-input" placeholder="••••••••">
             </div>
-          </div>
         </div>
 
+        <!-- Karte 2: Server-Infos -->
         <div class="settings-card">
           <div class="settings-card-title">&#128187; Server Infos</div>
           <div class="form-group">
-            <label class="form-label" for="cfg-server-name">Server Name</label>
-            <input type="text" id="cfg-server-name" class="form-input" placeholder="Mein Minecraft Server">
+            <label class="form-label" for="cfg-server-name">Anzeigename</label>
+            <input type="text" id="cfg-server-name" class="form-input" placeholder="Mein Nebuliton Server">
           </div>
           <div class="form-group">
             <label class="form-label" for="cfg-max-players">Max. Spieler</label>
             <input type="number" id="cfg-max-players" class="form-input" min="1" max="1000" value="20">
+            <span class="form-hint">Wird automatisch vom Server &uuml;berschrieben wenn verbunden</span>
           </div>
           <div class="form-group">
             <label class="form-label" for="cfg-refresh">Auto-Refresh (Sekunden)</label>
             <input type="number" id="cfg-refresh" class="form-input" min="5" max="300" value="30">
           </div>
+
+          <div id="server-info-live" class="server-info-live hidden">
+            <div class="sil-title">&#128246; Server-Status</div>
+            <div class="sil-row"><span>Version:</span> <span id="sil-version">—</span></div>
+            <div class="sil-row"><span>MOTD:</span>    <span id="sil-motd">—</span></div>
+            <div class="sil-row"><span>Spieler:</span> <span id="sil-players">—</span></div>
+          </div>
         </div>
 
+        <!-- Karte 3: Dokumentation -->
         <div class="settings-card settings-card--full">
-          <div class="settings-card-title">&#128225; API Dokumentation</div>
-          <p class="form-hint" style="margin-bottom:12px;">Das Dashboard benötigt eine HTTP-API, die Minecraft-Befehle via RCON ausführt. Mögliche Backends:</p>
+          <div class="settings-card-title">&#128225; So verbindest du Nebuliton</div>
           <div class="api-options">
             <div class="api-option">
-              <div class="api-option-title">&#127381; Nebuliton API</div>
-              <p>Falls Nebuliton.io eine REST-API bereitstellt, einfach deren URL oben eintragen.</p>
+              <div class="api-option-title">1&#65039;&#8419; Server-Adresse eintragen</div>
+              <p>Trage deine Nebuliton-Serveradresse oben ein (z.B. <code>abc123.nebuliton.io</code>).
+                 Spielerliste und Mojang-Skins funktionieren sofort &ndash; ohne Plugins!</p>
             </div>
             <div class="api-option">
-              <div class="api-option-title">&#128268; RCON-Web-Admin</div>
-              <p>Nutze <strong>rcon-web-admin</strong> als leichtgewichtigen HTTP-RCON-Wrapper.</p>
+              <div class="api-option-title">2&#65039;&#8419; RCON aktivieren (optional)</div>
+              <p>F&uuml;r Befehle (Items geben, Enchants etc.) RCON in den Nebuliton-Einstellungen
+                 aktivieren und einen RCON-HTTP-Wrapper (z.B. <strong>rcon-web-admin</strong>) starten.</p>
             </div>
             <div class="api-option">
-              <div class="api-option-title">&#129529; Paper Plugin</div>
-              <p>Installiere ein Plugin wie <strong>WebConsole</strong> oder <strong>Dynmap</strong> mit API.</p>
+              <div class="api-option-title">3&#65039;&#8419; Fertig!</div>
+              <p>Das Dashboard nutzt <strong>api.mcsrvstat.us</strong> f&uuml;r die Spielerliste
+                 und <strong>Mojang / crafatar.com</strong> f&uuml;r echte Spieler-Skins.</p>
             </div>
           </div>
           <div class="api-endpoints">
-            <div class="api-endpoints-title">Erwartete Endpunkte:</div>
-            <div class="endpoint"><code>GET /players</code> &rarr; Liste der Online-Spieler (JSON)</div>
-            <div class="endpoint"><code>POST /execute</code> &rarr; Body: <code>&#123;"command":"…"&#125;</code> &rarr; Führt RCON-Befehl aus</div>
+            <div class="api-endpoints-title">Datenquellen:</div>
+            <div class="endpoint"><code>api.mcsrvstat.us/3/{adresse}</code> &rarr; Online-Spieler, Serverstatus</div>
+            <div class="endpoint"><code>playerdb.co/api/player/minecraft/{name}</code> &rarr; Mojang UUID</div>
+            <div class="endpoint"><code>crafatar.com/avatars/{uuid}</code> &rarr; Echte Minecraft-Skins</div>
+            <div class="endpoint"><code>POST {rcon-proxy}/execute</code> &rarr; Befehle ausf&uuml;hren <em>(optional)</em></div>
           </div>
         </div>
 
