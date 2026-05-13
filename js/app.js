@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function applySettings() {
   const c = api.cfg;
-  $('demo-mode').checked             = c.demoMode;
   $('cfg-server-address').value      = c.serverAddress || '';
   $('api-url').value                 = c.apiUrl || '';
   $('api-token').value               = c.apiToken || '';
@@ -48,19 +47,11 @@ function applySettings() {
   $('cfg-refresh').value             = c.refreshSecs;
   $('server-name-display').textContent = c.serverName;
   $('max-count').textContent           = c.maxPlayers;
-  toggleLiveFields(!c.demoMode);
-}
-
-function toggleLiveFields(show) {
-  $('live-settings-group').style.display = show ? '' : 'none';
 }
 
 function bindSettings() {
-  $('demo-mode').addEventListener('change', e => toggleLiveFields(!e.target.checked));
-
   $('save-settings-btn').addEventListener('click', () => {
     api.save({
-      demoMode:      $('demo-mode').checked,
       serverAddress: $('cfg-server-address').value.trim(),
       apiUrl:        $('api-url').value.trim(),
       apiToken:      $('api-token').value.trim(),
@@ -119,8 +110,8 @@ async function loadPlayers() {
     /* Echte Server-Infos asynchron nachladen */
     loadServerInfo();
 
-    /* UUIDs asynchron per Mojang nachladen (nur bei server-status Modus) */
-    if (!api.cfg.demoMode && players.some(p => !p.uuid)) {
+    /* UUIDs asynchron per Mojang nachladen */
+    if (players.some(p => !p.uuid)) {
       enrichWithUUIDs();
     }
   } catch (err) {
@@ -187,10 +178,9 @@ function showState(name) {
 function updateStatusBar(online) {
   const dot  = $('status-dot');
   const text = $('status-text');
-  const src  = api.cfg.demoMode ? 'demo' : api.cfg.serverAddress ? 'live' : 'api';
   dot.className    = 'status-dot ' + (online ? 'online' : 'offline');
   text.textContent = online
-    ? (src === 'demo' ? 'Demo-Modus' : src === 'live' ? 'Live ✦ ' + (api.cfg.serverAddress || '') : 'Online')
+    ? (api.cfg.serverAddress ? 'Live ✦ ' + api.cfg.serverAddress : 'Online')
     : 'Offline';
   $('online-count').textContent = players.length;
 }
@@ -290,7 +280,7 @@ function bindSearch() {
 function openPlayerModal(player) {
   activePlayer = player;
   const isLive = player.dataSource === 'server-status';
-  const hasRcon = !!api.cfg.apiUrl || api.cfg.demoMode;
+  const hasRcon = !!api.cfg.apiUrl;
 
   /* Avatar */
   const av = $('modal-avatar');

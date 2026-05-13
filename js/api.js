@@ -1,22 +1,12 @@
 /* ═══════════════════════════════════════════════════════
-   API Layer – Demo / Nebuliton Server Query / RCON-Proxy
+   API Layer – Nebuliton Server Query / RCON-Proxy
    ═══════════════════════════════════════════════════════ */
-
-const DEMO_PLAYERS = [
-  { name:'Steve',       uuid:'a1b2c3d4-e5f6-7890-abcd-ef1234567890', health:18, maxHealth:20, level:15, xp:850,  xpToNext:1200, gamemode:'survival',  world:'world',         x:125,  y:64, z:-238 },
-  { name:'Alex',        uuid:'b2c3d4e5-f6a7-8901-bcde-f12345678901', health:20, maxHealth:20, level:42, xp:1200, xpToNext:3400, gamemode:'survival',  world:'world',         x:-512, y:71, z:304  },
-  { name:'Notch',       uuid:'069a79f4-44e9-4726-a5be-fca90e38aaf5', health:20, maxHealth:20, level:7,  xp:300,  xpToNext:600,  gamemode:'creative',  world:'world_nether',  x:64,   y:45, z:-128 },
-  { name:'Herobrine',   uuid:'d4e5f6a7-b8c9-0123-defa-234567890123', health:40, maxHealth:40, level:100,xp:9999, xpToNext:99999,gamemode:'survival',  world:'world_the_end', x:0,    y:64, z:0    },
-  { name:'CreeperFan2', uuid:'e5f6a7b8-c9d0-1234-efab-345678901234', health:6,  maxHealth:20, level:3,  xp:45,   xpToNext:120,  gamemode:'adventure', world:'world',         x:800,  y:92, z:600  },
-  { name:'DiamondQueen',uuid:'f6a7b8c9-d0e1-2345-fabc-456789012345', health:20, maxHealth:20, level:60, xp:5000, xpToNext:8000, gamemode:'survival',  world:'world',         x:-200, y:11, z:350  },
-];
 
 const DEFAULT_CFG = {
   serverAddress: '',       // z.B. play.nebuliton.io oder play.nebuliton.io:25565
   serverName:    'Mein Nebuliton Server',
   maxPlayers:    20,
   refreshSecs:   30,
-  demoMode:      true,
   apiUrl:        '',       // RCON-Proxy für Befehle (optional)
   apiToken:      '',
 };
@@ -46,18 +36,12 @@ class MCApi {
 
   /* ══════════════════════════════════════════════════════
      SPIELER-LISTE
-     Priorität: Demo → Server-Adresse (mcsrvstat) → RCON-API
+     Priorität: Server-Adresse (mcsrvstat) → RCON-API
      ══════════════════════════════════════════════════════ */
   async getPlayers() {
-    if (this.cfg.demoMode) {
-      await this._delay(600 + Math.random() * 300);
-      return DEMO_PLAYERS.map(p => ({ ...p, dataSource: 'demo' }));
-    }
-
     if (this.cfg.serverAddress.trim()) {
       return this._fetchFromMcsrvstat();
     }
-
     return this._get('/players');
   }
 
@@ -102,7 +86,7 @@ class MCApi {
 
   /* ── Server-Infos (MOTD, Version, Spielerzahl) ── */
   async getServerInfo() {
-    if (this.cfg.demoMode || !this.cfg.serverAddress.trim()) return null;
+    if (!this.cfg.serverAddress.trim()) return null;
     if (this._statusCache) return this._statusCache;
     const addr = this.cfg.serverAddress.trim().replace(/^https?:\/\//i, '');
     try {
@@ -162,11 +146,6 @@ class MCApi {
      RCON-BEFEHLE (benötigt API-URL)
      ══════════════════════════════════════════════════════ */
   async execute(command) {
-    if (this.cfg.demoMode) {
-      await this._delay(250 + Math.random() * 250);
-      console.info('[Demo] /', command);
-      return { success: true, output: `[Demo] ${command}` };
-    }
     if (!this.cfg.apiUrl) {
       /* Kein RCON-Proxy – Befehl nur anzeigen */
       console.info('[Kein RCON-Proxy] /', command);
@@ -192,7 +171,6 @@ class MCApi {
   }
   _url(path)    { return this.cfg.apiUrl.replace(/\/$/, '') + path; }
   _headers()    { return this.cfg.apiToken ? { Authorization: `Bearer ${this.cfg.apiToken}` } : {}; }
-  _delay(ms)    { return new Promise(r => setTimeout(r, ms)); }
 }
 
 const api = new MCApi();
